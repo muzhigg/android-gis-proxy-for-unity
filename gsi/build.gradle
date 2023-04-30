@@ -1,0 +1,47 @@
+apply plugin: 'com.android.library'
+
+android {
+    signingConfigs {
+        release {
+            storeFile file('C:\\Users\\muzhi\\.android\\gsi.keystore')
+            storePassword 'Gs#19Yr96'
+            keyAlias 'release'
+            keyPassword 'Gs#19Yr96'
+        }
+        test {
+            storeFile file('C:\\Users\\muzhi\\.android\\googletest.keystore')
+            storePassword 'c9diegao'
+            keyAlias 'googletest'
+            keyPassword 'c9diegao'
+        }
+    }
+    compileSdkVersion 33
+
+    defaultConfig {
+        minSdkVersion 22
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    compileOnly files('libs/classes.jar')
+    implementation 'com.google.android.gms:play-services-auth:20.5.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation project(path: ':unityAppCompatActivity')
+}

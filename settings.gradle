@@ -1,0 +1,4 @@
+include ':launcher', ':unityLibrary'
+include ':unityAppCompatActivity'
+include ':gsi'
+include ':testActivity'
