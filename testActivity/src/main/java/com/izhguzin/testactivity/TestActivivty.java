@@ -7,7 +7,6 @@ import android.view.View;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.LinearLayoutCompat;
 
-import com.izhguzin.gsi.GoogleSignInClientProxy;
 import com.izhguzin.gsi.GsiAppCompatActivity;
 
 public class TestActivivty extends GsiAppCompatActivity implements View.OnClickListener {
@@ -22,6 +21,12 @@ public class TestActivivty extends GsiAppCompatActivity implements View.OnClickL
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        Integer a = new Integer(1);
+        Integer b = new Integer(1);
+
+        Log.d("TAG", String.valueOf(a == b));
+        Log.d("TAG", String.valueOf(a.equals(b)));
 
         LinearLayoutCompat layoutCompat = new LinearLayoutCompat(this);
 
@@ -56,37 +61,6 @@ public class TestActivivty extends GsiAppCompatActivity implements View.OnClickL
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()){
-            case SIGN_IN:
-                clientProxy.signIn(new GoogleSignInClientProxy.OnSignInListener() {
-                    @Override
-                    public void onSuccess(String value) {
-                        Log.d("TAG", value);
-                    }
 
-                    @Override
-                    public void onFailure(int statusCode, String message) {
-                        Log.e("TAG", message);
-                    }
-                });
-
-                break;
-            case SIGN_OUT:
-clientProxy.signOut(new GoogleSignInClientProxy.OnTaskCompleteListener() {
-    @Override
-    public void onSuccess() {
-
-    }
-
-    @Override
-    public void onFailure(int statusCode, String message) {
-
-    }
-});
-                break;
-            case REVOKE:
-
-                break;
-        }
     }
 }

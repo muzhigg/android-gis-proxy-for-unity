@@ -13,18 +13,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.tasks.Task;
 
 public class GoogleSignInClientProxy {
 
-    public interface OnSignInListener {
-        void onSuccess(String value);
-        void onFailure(int statusCode, String message);
-    }
-
     public interface OnTaskCompleteListener {
-        void onSuccess();
-        void onFailure(int statusCode, String message);
+
+        void onComplete(String value, int statusCode, String errorMessage);
     }
 
     private static final String TAG = "GIS PROXY";
@@ -33,7 +29,7 @@ public class GoogleSignInClientProxy {
     private final ActivityResultLauncher<Intent> signInResultHandler;
     private boolean singleUse;
 
-    private OnSignInListener onSignInListener;
+    private OnTaskCompleteListener onSignInListener;
 
     GoogleSignInClientProxy(AppCompatActivity appCompatActivity) {
 
@@ -66,14 +62,14 @@ public class GoogleSignInClientProxy {
         Log.d(TAG, "Google Sign In client is ready to use.");
     }
 
-    public void signIn(OnSignInListener listener) {
+    public void signIn(OnTaskCompleteListener listener) {
 
         onSignInListener = listener;
 
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(activity);
 
         if (account != null){
-            invokeSignInSuccess(account);
+            invokeSignInSuccess(account, true);
             return;
         }
 
@@ -89,12 +85,12 @@ public class GoogleSignInClientProxy {
     private void handleTaskResult(OnTaskCompleteListener listener, Task<Void> task) {
         if (listener != null) {
             if (task.isSuccessful()) {
-                listener.onSuccess();
+                listener.onComplete("", CommonStatusCodes.SUCCESS, "");
             }
             else {
                 ApiException apiException = (ApiException) task.getException();
                 if (apiException != null) {
-                    listener.onFailure(apiException.getStatusCode(), GoogleSignInStatusCodes.getStatusCodeString(apiException.getStatusCode()));
+                    listener.onComplete("", apiException.getStatusCode(), GoogleSignInStatusCodes.getStatusCodeString(apiException.getStatusCode()));
                 }
             }
         }
@@ -105,14 +101,17 @@ public class GoogleSignInClientProxy {
         client.revokeAccess().addOnCompleteListener(activity, task -> handleTaskResult(listener, task));
     }
 
-    private void invokeSignInSuccess(GoogleSignInAccount account) {
+    private void invokeSignInSuccess(GoogleSignInAccount account, boolean fromCache) {
 
         if (onSignInListener != null) {
+
+            int status = fromCache ? -1 : 0;
+
             if (singleUse) {
-                onSignInListener.onSuccess(account.getIdToken());
+                onSignInListener.onComplete(account.getIdToken(), status, "");
             }
             else {
-                onSignInListener.onSuccess(account.getServerAuthCode());
+                onSignInListener.onComplete("", status, "");
             }
         }
 
@@ -122,7 +121,7 @@ public class GoogleSignInClientProxy {
     private void invokeFailure(int errorCode, String message) {
 
         if (onSignInListener != null) {
-            onSignInListener.onFailure(errorCode, message);
+            onSignInListener.onComplete("", errorCode, message);
         }
 
         onSignInListener = null;
@@ -134,7 +133,7 @@ public class GoogleSignInClientProxy {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
 
             // Signed in successfully, show authenticated UI.
-            invokeSignInSuccess(account);
+            invokeSignInSuccess(account, false);
 
         } catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.
