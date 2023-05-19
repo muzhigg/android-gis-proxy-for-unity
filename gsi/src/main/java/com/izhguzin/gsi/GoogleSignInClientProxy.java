@@ -22,12 +22,34 @@ public class GoogleSignInClientProxy {
         void onComplete(String code, int statusCode, String errorMessage);
     }
 
-    private static final String TAG = "GIS PROXY";
+    private static volatile GoogleSignInClientProxy instance;
+
+    private static final String TAG = "GSI PROXY";
     private final AppCompatActivity activity;
     private GoogleSignInClient client;
     private final ActivityResultLauncher<Intent> signInResultHandler;
-
     private OnTaskCompleteListener onSignInListener;
+
+    public static GoogleSignInClientProxy getInstance() {
+        return instance;
+    }
+
+    public static void init(AppCompatActivity appCompatActivity) {
+
+        GoogleSignInClientProxy localInstance = instance;
+
+        if (localInstance == null) {
+            synchronized (GoogleSignInClientProxy.class) {
+                localInstance = instance;
+                if (localInstance == null) {
+                    instance = localInstance = new GoogleSignInClientProxy(appCompatActivity);
+                }
+            }
+        }
+        else {
+            Log.e(TAG, "Google Sign In Client Proxy already initialized!");
+        }
+    }
 
     GoogleSignInClientProxy(AppCompatActivity appCompatActivity) {
 
@@ -38,12 +60,13 @@ public class GoogleSignInClientProxy {
                     handleSignInResult(task);
                 }
         );
+
+        Log.d(TAG, "GoogleSignInClientProxy is initialized.");
     }
 
     public void initOptions(GoogleSignInOptions options) {
 
         client = GoogleSignIn.getClient(activity, options);
-
         Log.d(TAG, "Google Sign In client is ready to use.");
     }
 
