@@ -13,21 +13,19 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.tasks.Task;
 
 public class GoogleSignInClientProxy {
 
     public interface OnTaskCompleteListener {
 
-        void onComplete(String value, int statusCode, String errorMessage);
+        void onComplete(String code, int statusCode, String errorMessage);
     }
 
     private static final String TAG = "GIS PROXY";
     private final AppCompatActivity activity;
     private GoogleSignInClient client;
     private final ActivityResultLauncher<Intent> signInResultHandler;
-    private boolean singleUse;
 
     private OnTaskCompleteListener onSignInListener;
 
@@ -42,22 +40,9 @@ public class GoogleSignInClientProxy {
         );
     }
 
-    public void configureClient(String clientId, boolean singleUse) {
+    public void initOptions(GoogleSignInOptions options) {
 
-        this.singleUse = singleUse;
-
-        GoogleSignInOptions.Builder bld =
-                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN);
-
-        if (singleUse) {
-            bld.requestIdToken(clientId);
-        }
-        else {
-            bld.requestServerAuthCode(clientId);
-        }
-
-        GoogleSignInOptions gso = bld.build();
-        client = GoogleSignIn.getClient(activity, gso);
+        client = GoogleSignIn.getClient(activity, options);
 
         Log.d(TAG, "Google Sign In client is ready to use.");
     }
@@ -66,53 +51,20 @@ public class GoogleSignInClientProxy {
 
         onSignInListener = listener;
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(activity);
-
-        if (account != null){
-            invokeSignInSuccess(account, true);
-            return;
-        }
-
         Intent signInIntent = client.getSignInIntent();
         signInResultHandler.launch(signInIntent);
     }
 
-    public void signOut(OnTaskCompleteListener listener) {
+    public void signOut() {
 
-        client.signOut().addOnCompleteListener(activity, task -> handleTaskResult(listener, task));
+        client.signOut();
     }
 
-    private void handleTaskResult(OnTaskCompleteListener listener, Task<Void> task) {
-        if (listener != null) {
-            if (task.isSuccessful()) {
-                listener.onComplete("", CommonStatusCodes.SUCCESS, "");
-            }
-            else {
-                ApiException apiException = (ApiException) task.getException();
-                if (apiException != null) {
-                    listener.onComplete("", apiException.getStatusCode(), GoogleSignInStatusCodes.getStatusCodeString(apiException.getStatusCode()));
-                }
-            }
-        }
-    }
-
-    public void revokeAccess(OnTaskCompleteListener listener) {
-
-        client.revokeAccess().addOnCompleteListener(activity, task -> handleTaskResult(listener, task));
-    }
-
-    private void invokeSignInSuccess(GoogleSignInAccount account, boolean fromCache) {
+    private void invokeSignInSuccess(GoogleSignInAccount account) {
 
         if (onSignInListener != null) {
 
-            int status = fromCache ? -1 : 0;
-
-            if (singleUse) {
-                onSignInListener.onComplete(account.getIdToken(), status, "");
-            }
-            else {
-                onSignInListener.onComplete("", status, "");
-            }
+            onSignInListener.onComplete(account.getServerAuthCode(), 1, "");
         }
 
         onSignInListener = null;
@@ -131,13 +83,8 @@ public class GoogleSignInClientProxy {
 
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-
-            // Signed in successfully, show authenticated UI.
-            invokeSignInSuccess(account, false);
-
+            invokeSignInSuccess(account);
         } catch (ApiException e) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
             invokeFailure(e.getStatusCode(), GoogleSignInStatusCodes.getStatusCodeString(e.getStatusCode()));
         }
     }
