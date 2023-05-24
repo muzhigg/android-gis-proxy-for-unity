@@ -2,10 +2,10 @@
 
 This repository contains two libraries for working with the Google Identity package on the Android platform.
 
-com.izhguzin.unityappcompatactivity *same paragraph*
-It contains the UnityPlayerAppCompatActivity class, which inherits from AppCompatActivity. Otherwise, it is a complete copy of UnityPlayerActivity. It also contains the UnityAppCompatThemeSelector theme, which is an analogue of UnityThemeSelector. *same paragraph*
+* __com.izhguzin.unityappcompatactivity__  
+It contains the UnityPlayerAppCompatActivity class, which inherits from AppCompatActivity. Otherwise, it is a complete copy of UnityPlayerActivity. It also contains the UnityAppCompatThemeSelector theme, which is an analogue of UnityThemeSelector.
 
-com.izhguzin.gsi
+* __com.izhguzin.gsi__  
 It contains two classes: GsiAppCompatActivity and GoogleSignInClientProxy.
 GsiAppCompatActivity inherits from UnityPlayerAppCompatActivity and, most importantly, initializes the GoogleSignInClientProxy. You can inherit your activity from this class so that the GoogleIdentity package can work on Android devices.
 If you don't want to inherit from GsiAppCompatActivity, you can initialize the GoogleSignInClientProxy yourself using the GoogleSignInClientProxy.init(AppCompatActivity) method.
